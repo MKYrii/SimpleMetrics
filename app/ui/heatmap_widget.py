@@ -34,7 +34,8 @@ class HeatmapWidget(QWidget):
         self._min_value = 0.0
         self._max_value = 10.0
         self._gradient = "green"
-        self._gold_threshold: float | None = None
+        self._gold_min: float | None = None
+        self._gold_min: float | None = None
 
         # Сетка строится один раз под текущую дату
         self._weeks = self._build_grid(date.today())
@@ -56,13 +57,15 @@ class HeatmapWidget(QWidget):
         min_value: float,
         max_value: float,
         gradient: str,
-        gold_threshold: float | None,
+        gold_min: float | None,
+        gold_max: float | None,
     ):
         self._values = values
         self._min_value = min_value
         self._max_value = max_value
         self._gradient = gradient
-        self._gold_threshold = gold_threshold
+        self._gold_min = gold_min
+        self._gold_max = gold_max
         self.update()
 
     # --- Построение сетки ---
@@ -133,7 +136,8 @@ class HeatmapWidget(QWidget):
                 min_value=self._min_value,
                 max_value=self._max_value,
                 gradient=self._gradient,
-                gold_threshold=self._gold_threshold,
+                gold_min=self._gold_min,
+                gold_max=self._gold_max,
                 is_today=is_today,
             )
             painter.setBrush(QBrush(QColor(color)))

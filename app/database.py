@@ -30,7 +30,8 @@ class Page(Base):
     name = Column(String, nullable=False)
     metric_type = Column(String, nullable=False)   # 'bool' | 'count' | 'hours'
     gradient = Column(String, nullable=False)      # 'red' | 'green' | 'blue'
-    gold_threshold = Column(Float, nullable=True)  # None = выключено
+    gold_min = Column(Float, nullable=True)
+    gold_max = Column(Float, nullable=True)
     min_value = Column(Float, nullable=False, default=0.0)
     max_value = Column(Float, nullable=False, default=10.0)
 
@@ -63,7 +64,8 @@ def create_page(
     name: str,
     metric_type: str,
     gradient: str,
-    gold_threshold: float | None,
+    gold_min: float,
+    gold_max: float,
     min_value: float,
     max_value: float,
 ) -> int:
@@ -73,7 +75,8 @@ def create_page(
             name=name,
             metric_type=metric_type,
             gradient=gradient,
-            gold_threshold=gold_threshold,
+            gold_min=gold_min,
+            gold_max=gold_max,
             min_value=min_value,
             max_value=max_value,
         )

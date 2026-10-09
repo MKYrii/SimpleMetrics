@@ -24,7 +24,8 @@ def value_to_color(
     min_value: float,
     max_value: float,
     gradient: str,
-    gold_threshold: float | None,
+    gold_min: float | None,
+    gold_max: float | None,
     is_today: bool = False,
 ) -> str:
     """
@@ -35,8 +36,9 @@ def value_to_color(
     if value is None:
         return TODAY_COLOR if is_today else EMPTY_COLOR
 
-    if gold_threshold is not None and value >= gold_threshold:
-        return GOLD_COLOR
+    if gold_min is not None and gold_max is not None:
+        if gold_min <= value <= gold_max:
+            return GOLD_COLOR
 
     palette = GRADIENTS.get(gradient, GRADIENTS["green"])
 

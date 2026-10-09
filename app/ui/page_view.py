@@ -32,7 +32,7 @@ class ValueDialog(QDialog):
 
     def _build_ui(self, current_value: float | None):
         root = QVBoxLayout(self)
-        root.setContentsMargins(16, 16, 16, 16)
+        root.setContentsMargins(20, 10, 20, 20)
         root.setSpacing(12)
 
         form = QFormLayout()
@@ -80,7 +80,7 @@ class PageView(QWidget):
 
     def _build_ui(self):
         root = QVBoxLayout(self)
-        root.setContentsMargins(20, 16, 20, 20)
+        root.setContentsMargins(20, 10, 20, 20)
         root.setSpacing(16)
 
         # --- Верхняя панель: бургер + назад ---
@@ -136,7 +136,8 @@ class PageView(QWidget):
             min_value=self._page.min_value,
             max_value=self._page.max_value,
             gradient=self._page.gradient,
-            gold_threshold=self._page.gold_threshold,
+            gold_min=self._page.gold_min,
+            gold_max=self._page.gold_max,
         )
         self._rebuild_legend()
 
@@ -159,14 +160,14 @@ class PageView(QWidget):
             self.legend_layout.addWidget(cell)
         self.legend_layout.addWidget(QLabel("more"))
 
-        if self._page.gold_threshold is not None:
+        if self._page.gold_min is not None and self._page.gold_max is not None:
             gold = QLabel()
             gold.setFixedSize(14, 14)
             gold.setStyleSheet("background-color: #FFD700; border-radius: 3px;")
             self.legend_layout.addSpacing(16)
             self.legend_layout.addWidget(gold)
             self.legend_layout.addWidget(
-                QLabel(f"gold from {self._page.gold_threshold:g}")
+                QLabel(f"gold {self._page.gold_min:g}–{self._page.gold_max:g}")
             )
 
     def _on_day_clicked(self, day: date):
@@ -182,5 +183,6 @@ class PageView(QWidget):
                 min_value=self._page.min_value,
                 max_value=self._page.max_value,
                 gradient=self._page.gradient,
-                gold_threshold=self._page.gold_threshold,
+                gold_min=self._page.gold_min,
+                gold_max=self._page.gold_max,
             )

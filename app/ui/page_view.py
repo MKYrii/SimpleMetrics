@@ -12,9 +12,10 @@ from PySide6.QtWidgets import (
     QLineEdit, QCheckBox, QPushButton, QFormLayout, QMessageBox,
 )
 
-from app.database import get_page, get_days_for_page, set_day_value
+from app.database import get_page, get_days_for_page, set_day_value, delete_page
 from .colors import legend_colors
 from .heatmap_widget import HeatmapWidget
+from .edit_page_dialog import EditPageDialog
 
 
 class ValueDialog(QDialog):
@@ -73,6 +74,9 @@ class ValueDialog(QDialog):
 class PageView(QWidget):
     back_requested = Signal()
 
+    page_updated = Signal()   # после edit — нужно перерисовать и обновить список
+    page_deleted = Signal()   # после delete — MainWindow уйдёт на home
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._page = None
@@ -96,6 +100,19 @@ class PageView(QWidget):
 
         top.addWidget(self.back_button)
         top.addStretch()
+
+        self.edit_button = QPushButton("edit")
+        self.edit_button.setObjectName("editDeleteButton")
+        self.edit_button.setCursor(Qt.PointingHandCursor)
+        self.edit_button.clicked.connect(self._on_edit)
+
+        self.delete_button = QPushButton("delete")
+        self.delete_button.setObjectName("editDeleteButton")
+        self.delete_button.setCursor(Qt.PointingHandCursor)
+        self.delete_button.clicked.connect(self._on_delete)
+
+        top.addWidget(self.edit_button)
+        top.addWidget(self.delete_button)
 
         # --- Центрированный контент ---
         content = QVBoxLayout()
@@ -186,3 +203,30 @@ class PageView(QWidget):
                 gold_min=self._page.gold_min,
                 gold_max=self._page.gold_max,
             )
+
+
+    def _on_edit(self):
+        if self._page is None:
+            return
+        dialog = EditPageDialog(self._page, parent=self)
+        if dialog.exec() == QDialog.Accepted:
+            # перечитать страницу из БД (могли поменять name/gradient/gold)
+            self.load_page(self._page.id)
+            self.page_updated.emit()
+
+    def _on_delete(self):
+        if self._page is None:
+            return
+        answer = QMessageBox.question(
+            self,
+            "delete page",
+            f"delete '{self._page.name}' and all its entries?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if answer != QMessageBox.Yes:
+            return
+        page_id = self._page.id
+        delete_page(page_id)
+        self._page = None
+        self.page_deleted.emit()

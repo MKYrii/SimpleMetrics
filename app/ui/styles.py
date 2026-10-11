@@ -160,4 +160,17 @@ QPushButton#saveDbButton:hover {
     background-color: #000000;
     color: #ffffff;
 }
+
+QPushButton#editDeleteButton {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+QPushButton#editDeleteButton:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
 """

@@ -92,11 +92,21 @@ class MainWindow(QMainWindow):
         self.pages_panel.itemClicked.connect(self._on_page_selected)
         self.page_view.back_requested.connect(self._go_home)
         self.save_db_button.clicked.connect(self._on_save_db)
+        self.page_view.page_updated.connect(self._on_page_updated)
+        self.page_view.page_deleted.connect(self._on_page_deleted)
 
     def _setup_animation(self):
         self.panel_anim = QPropertyAnimation(self.pages_panel, b"geometry")
         self.panel_anim.setDuration(self.ANIM_DURATION)
         self.panel_anim.setEasingCurve(QEasingCurve.OutCubic)
+
+
+    def _on_page_updated(self):
+        self._reload_pages_list()
+
+    def _on_page_deleted(self):
+        self._reload_pages_list()
+        self._go_home()
 
 
     def _on_page_selected(self, item):

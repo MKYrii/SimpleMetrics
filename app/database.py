@@ -164,3 +164,21 @@ def dump_all_to_csv(path: str) -> int:
                         ])
                         rows_written += 1
         return rows_written
+
+
+def update_page(
+    page_id: int,
+    name: str,
+    gradient: str,
+    gold_min: float | None,
+    gold_max: float | None,
+) -> None:
+    with SessionLocal() as s:
+        page = s.get(Page, page_id)
+        if page is None:
+            return
+        page.name = name
+        page.gradient = gradient
+        page.gold_min = gold_min
+        page.gold_max = gold_max
+        s.commit()

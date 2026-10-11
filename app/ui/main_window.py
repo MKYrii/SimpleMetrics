@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 from .home_page import HomePage
 from .create_page import CreatePage
 from .page_view import PageView
+from app.database import get_all_pages, dump_all_to_csv
+from datetime import date
+from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 
 class MainWindow(QMainWindow):
@@ -64,6 +67,14 @@ class MainWindow(QMainWindow):
         self.burger_button.setGeometry(15, 10, 40, 40)
         self.burger_button.raise_()
 
+        # Кнопка save database — правый верхний угол
+        self.save_db_button = QPushButton("save database", self)
+        self.save_db_button.setObjectName("saveDbButton")
+        self.save_db_button.setCursor(Qt.PointingHandCursor)
+        self.save_db_button.setFixedHeight(40)
+        self.save_db_button.adjustSize()
+        self.save_db_button.raise_()
+
         # Выезжающая панель
         self.pages_panel = QListWidget(self)
         self.pages_panel.setObjectName("pagesPanel")
@@ -80,6 +91,7 @@ class MainWindow(QMainWindow):
         self.burger_button.clicked.connect(self._toggle_panel)
         self.pages_panel.itemClicked.connect(self._on_page_selected)
         self.page_view.back_requested.connect(self._go_home)
+        self.save_db_button.clicked.connect(self._on_save_db)
 
     def _setup_animation(self):
         self.panel_anim = QPropertyAnimation(self.pages_panel, b"geometry")
@@ -96,6 +108,24 @@ class MainWindow(QMainWindow):
         self._close_panel_if_open()
         self._update_burger_visibility()
 
+
+    def _on_save_db(self):
+        default_name = f"metrics_dump_{date.today().isoformat()}.csv"
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "save database",
+            default_name,
+            "CSV files (*.csv);;All files (*)",
+        )
+        if not path:
+            return
+        try:
+            rows = dump_all_to_csv(path)
+        except Exception as e:
+            QMessageBox.critical(self, "error", f"failed to save:\n{e}")
+            return
+        QMessageBox.information(self, "saved", f"saved {rows} rows to\n{path}")
+
     # --- Панель ---
     def _toggle_panel(self):
         start = self.pages_panel.geometry()
@@ -106,6 +136,7 @@ class MainWindow(QMainWindow):
             # Панель поверх всего, но бургер — ещё выше
             self.pages_panel.raise_()
             self.burger_button.raise_()
+            self.save_db_button.raise_()
         self.panel_anim.stop()
         self.panel_anim.setStartValue(start)
         self.panel_anim.setEndValue(end)
@@ -127,11 +158,10 @@ class MainWindow(QMainWindow):
         self._update_burger_visibility()
 
     def _update_burger_visibility(self):
-        def _update_burger_visibility(self):
-            # Бургер виден на home и на page_view, скрыт на create_page
-            self.burger_button.setVisible(
-                self.stack.currentIndex() in (self.HOME_INDEX, self.PAGE_VIEW_INDEX)
-            )
+        # Бургер виден на home и на page_view, скрыт на create_page
+        idx = self.stack.currentIndex()
+        self.burger_button.setVisible(idx in (self.HOME_INDEX, self.PAGE_VIEW_INDEX))
+        self.save_db_button.setVisible(idx == self.HOME_INDEX)
 
     def _on_page_created(self, page_id: int):
         # Пока просто возвращаемся на home. Список страниц обновим позже.
@@ -153,3 +183,7 @@ class MainWindow(QMainWindow):
         x = 0 if self._panel_open else -self.PANEL_WIDTH
         self.pages_panel.setGeometry(x, 0, self.PANEL_WIDTH, self.height())
         self.burger_button.raise_()
+        # Кнопка save database прижата к правому верхнему углу
+        btn_w = self.save_db_button.width()
+        self.save_db_button.move(self.width() - btn_w - 15, 10)
+        self.save_db_button.raise_()

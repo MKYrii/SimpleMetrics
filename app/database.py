@@ -6,6 +6,7 @@
 """
 
 from datetime import date
+import csv
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, Date,
     ForeignKey, UniqueConstraint, select,
@@ -125,3 +126,41 @@ def get_days_for_page(page_id: int) -> dict[date, float]:
     with SessionLocal() as s:
         rows = s.scalars(select(Day).where(Day.page_id == page_id)).all()
         return {row.date: row.value for row in rows}
+
+
+def dump_all_to_csv(path: str) -> int:
+    """
+    Сохранить все страницы и их дни в плоский CSV.
+    Возвращает количество записанных строк (без заголовка).
+    """
+    with SessionLocal() as s:
+        pages = list(s.scalars(select(Page).order_by(Page.id)))
+        rows_written = 0
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "page_id", "page_name", "metric_type", "gradient",
+                "gold_min", "gold_max", "min_value", "max_value",
+                "date", "value",
+            ])
+            for page in pages:
+                days = s.scalars(
+                    select(Day).where(Day.page_id == page.id).order_by(Day.date)
+                ).all()
+                if not days:
+                    # страница без записей — пишем одну строку с пустыми date/value
+                    writer.writerow([
+                        page.id, page.name, page.metric_type, page.gradient,
+                        page.gold_min, page.gold_max, page.min_value, page.max_value,
+                        "", "",
+                    ])
+                    rows_written += 1
+                else:
+                    for d in days:
+                        writer.writerow([
+                            page.id, page.name, page.metric_type, page.gradient,
+                            page.gold_min, page.gold_max, page.min_value, page.max_value,
+                            d.date.isoformat(), d.value,
+                        ])
+                        rows_written += 1
+        return rows_written

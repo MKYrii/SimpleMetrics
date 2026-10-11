@@ -33,6 +33,7 @@ class CreatePage(QWidget):
         self.back_button.setObjectName("roundButton")
         self.back_button.setCursor(Qt.PointingHandCursor)
         self.back_button.clicked.connect(self.back_requested.emit)
+        self.back_button.hide()
         top.addWidget(self.back_button)
         top.addStretch()
 

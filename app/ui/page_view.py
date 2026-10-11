@@ -36,21 +36,24 @@ class ValueDialog(QDialog):
         root.setContentsMargins(20, 10, 20, 20)
         root.setSpacing(12)
 
+        if self.page.metric_type == "bool":
+            already_done = current_value is not None and current_value >= 1
+            label = "not done" if already_done else "done"
+            self.checkbox = QCheckBox(label)
+            self.checkbox.setObjectName("boolToggle")
+            self.checkbox.setChecked(already_done)
+            self.checkbox.toggled.connect(self._on_bool_toggled)
+            root.addWidget(self.checkbox, alignment=Qt.AlignCenter)
+            self.input = None
+            self.save_button = None
+            return
+
         form = QFormLayout()
         form.setSpacing(8)
-
-        if self.page.metric_type == "bool":
-            self.checkbox = QCheckBox()
-            if current_value is not None:
-                self.checkbox.setChecked(current_value >= 1)
-            form.addRow("done", self.checkbox)
-            self.input = None
-        else:
-            self.input = QLineEdit()
-            if current_value is not None:
-                self.input.setText(str(current_value))
-            form.addRow("value", self.input)
-
+        self.input = QLineEdit()
+        if current_value is not None:
+            self.input.setText(str(current_value))
+        form.addRow("value", self.input)
         root.addLayout(form)
 
         self.save_button = QPushButton("save")
@@ -58,16 +61,18 @@ class ValueDialog(QDialog):
         self.save_button.clicked.connect(self._on_save)
         root.addWidget(self.save_button, alignment=Qt.AlignCenter)
 
+    def _on_bool_toggled(self, checked: bool):
+        self.result_value = 1.0 if checked else 0.0
+        self.accept()
+
     def _on_save(self):
-        if self.page.metric_type == "bool":
-            self.result_value = 1.0 if self.checkbox.isChecked() else 0.0
-        else:
-            text = self.input.text().strip()
-            try:
-                self.result_value = float(text)
-            except ValueError:
-                QMessageBox.warning(self, "warning", "value must be a number")
-                return
+        # Только для числовых
+        text = self.input.text().strip()
+        try:
+            self.result_value = float(text)
+        except ValueError:
+            QMessageBox.warning(self, "warning", "value must be a number")
+            return
         self.accept()
 
 
@@ -155,6 +160,7 @@ class PageView(QWidget):
             gradient=self._page.gradient,
             gold_min=self._page.gold_min,
             gold_max=self._page.gold_max,
+            metric_type=self._page.metric_type,
         )
         self._rebuild_legend()
 
@@ -164,6 +170,27 @@ class PageView(QWidget):
             w = item.widget()
             if w is not None:
                 w.deleteLater()
+
+        if self._page.metric_type == "bool":
+            from .colors import BASE_COLORS
+            base = BASE_COLORS.get(self._page.gradient, "#2ea043")
+
+            self.legend_layout.addWidget(QLabel("not done"))
+            empty = QLabel()
+            empty.setFixedSize(14, 14)
+            empty.setStyleSheet("background-color: #f5f5f5; border-radius: 3px;")
+            self.legend_layout.addWidget(empty)
+
+            self.legend_layout.addSpacing(16)
+
+            self.legend_layout.addWidget(QLabel("done"))
+            filled = QLabel()
+            filled.setFixedSize(14, 14)
+            filled.setStyleSheet(f"background-color: {base}; border-radius: 3px;")
+            self.legend_layout.addWidget(filled)
+
+            self.legend_layout.addStretch()
+            return
 
         colors = legend_colors(self._page.gradient)
 
@@ -187,6 +214,8 @@ class PageView(QWidget):
                 QLabel(f"gold {self._page.gold_min:g}–{self._page.gold_max:g}")
             )
 
+        self.legend_layout.addStretch()
+
     def _on_day_clicked(self, day: date):
         values = get_days_for_page(self._page.id)
         current = values.get(day)
@@ -202,6 +231,7 @@ class PageView(QWidget):
                 gradient=self._page.gradient,
                 gold_min=self._page.gold_min,
                 gold_max=self._page.gold_max,
+                metric_type=self._page.metric_type,
             )
 
 

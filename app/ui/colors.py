@@ -98,3 +98,10 @@ def value_to_color(
 
 def legend_colors(gradient: str) -> list[str]:
     return GRADIENTS.get(gradient) or list(GRADIENTS.values())[0]
+
+
+def bool_color(value: float | None, base_hex: str, is_today: bool = False) -> str:
+    """Для bool-метрик: 1 -> базовый цвет, 0 или None -> серый/белый."""
+    if value is not None and value >= 1:
+        return base_hex
+    return TODAY_COLOR if is_today else EMPTY_COLOR

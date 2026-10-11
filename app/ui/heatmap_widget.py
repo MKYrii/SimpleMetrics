@@ -12,6 +12,7 @@ from PySide6.QtGui import QPainter, QColor, QBrush, QFont, QPen
 from PySide6.QtWidgets import QWidget
 
 from .colors import value_to_color
+from .colors import bool_color, BASE_COLORS
 
 
 CELL_SIZE = 12
@@ -35,7 +36,8 @@ class HeatmapWidget(QWidget):
         self._max_value = 10.0
         self._gradient = "green"
         self._gold_min: float | None = None
-        self._gold_min: float | None = None
+        self._gold_max: float | None = None
+        self._metric_type = "count"
 
         # Сетка строится один раз под текущую дату
         self._weeks = self._build_grid(date.today())
@@ -59,6 +61,7 @@ class HeatmapWidget(QWidget):
         gradient: str,
         gold_min: float | None,
         gold_max: float | None,
+        metric_type: str = "count",
     ):
         self._values = values
         self._min_value = min_value
@@ -66,6 +69,7 @@ class HeatmapWidget(QWidget):
         self._gradient = gradient
         self._gold_min = gold_min
         self._gold_max = gold_max
+        self._metric_type = metric_type
         self.update()
 
     # --- Построение сетки ---
@@ -131,15 +135,19 @@ class HeatmapWidget(QWidget):
         for d, (col, row) in self._date_to_cell.items():
             value = self._values.get(d)
             is_today = (d == today)
-            color = value_to_color(
-                value=value,
-                min_value=self._min_value,
-                max_value=self._max_value,
-                gradient=self._gradient,
-                gold_min=self._gold_min,
-                gold_max=self._gold_max,
-                is_today=is_today,
-            )
+            if self._metric_type == "bool":
+                base = BASE_COLORS.get(self._gradient, "#2ea043")
+                color = bool_color(value, base, is_today=is_today)
+            else:
+                color = value_to_color(
+                    value=value,
+                    min_value=self._min_value,
+                    max_value=self._max_value,
+                    gradient=self._gradient,
+                    gold_min=self._gold_min,
+                    gold_max=self._gold_max,
+                    is_today=is_today,
+                )
             painter.setBrush(QBrush(QColor(color)))
             painter.drawRoundedRect(self._cell_rect(col, row), CELL_RADIUS, CELL_RADIUS)
 

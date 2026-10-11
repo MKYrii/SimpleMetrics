@@ -173,4 +173,25 @@ QPushButton#editDeleteButton:hover {
     background-color: #000000;
     color: #ffffff;
 }
+
+QCheckBox#boolToggle {
+    color: #000000;
+    background-color: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 4px;
+    padding: 10px 24px;
+    font-size: 14px;
+}
+QCheckBox#boolToggle:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
+QCheckBox#boolToggle::indicator {
+    width: 0px;
+    height: 0px;
+}
+QCheckBox#boolToggle:checked {
+    background-color: #000000;
+    color: #ffffff;
+}
 """

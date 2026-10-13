@@ -37,14 +37,14 @@ def _darken(rgb, factor):
 
 
 def _build_palette(base_hex: str) -> list[str]:
-    """5 ступеней: очень светлый -> очень тёмный."""
+    """5 ступеней: очень светлый -> тёмный."""
     rgb = _hex_to_rgb(base_hex)
     steps = [
         _lighten(rgb, 0.75),
-        _lighten(rgb, 0.45),
+        _lighten(rgb, 0.50),
+        _lighten(rgb, 0.25),
         rgb,
-        _darken(rgb, 0.35),
-        _darken(rgb, 0.6),
+        _darken(rgb, 0.30),
     ]
     return [_rgb_to_hex(*s) for s in steps]
 
@@ -78,7 +78,7 @@ def value_to_color(
     is_today: bool = False,
 ) -> str:
     if value is None:
-        return TODAY_COLOR if is_today else EMPTY_COLOR
+        return "#808080" if is_today else EMPTY_COLOR
 
     if gold_min is not None and gold_max is not None:
         if gold_min <= value <= gold_max:

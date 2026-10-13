@@ -6,8 +6,8 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from ui.main_window import MainWindow
-from ui.styles import get_app_font, GLOBAL_QSS
+from app.ui.main_window import MainWindow
+from app.ui.styles import get_app_font, GLOBAL_QSS
 
 from app.database import init_db
 
